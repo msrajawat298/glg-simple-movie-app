@@ -1,44 +1,29 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { observer } from "mobx-react-lite";
 import Button from "@mui/material/Button";
 
 import { useStores } from "../../hooks/useStores";
-import { Movie } from "../../definitions/Movie";
+import { Movie, MediaCategory } from "../../definitions/Movie";
 import { MediaController } from "./MediaController";
 
 import { MediaComponent } from "./components/media/MediaComponent";
+import { CardSkeleton } from "../../components/CardSkeleton";
 
 import "./Media.scss";
 
 export const MediaView = observer(() => {
   const { mediaStore } = useStores();
-  const { media } = mediaStore;
+  const { media, isLoading, activeCategory } = mediaStore;
 
-  const [contentType, setContentType] = useState<string>("all");
-  const mediaController = new MediaController(mediaStore);
+  const mediaController = useMemo(() => new MediaController(mediaStore), [mediaStore]);
 
   useEffect(() => {
-    (async () => {
-      await mediaController.getAll();
-    })();
+    mediaController.loadCategory(activeCategory);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleNav = async (type: string) => {
-    setContentType(type);
-    switch (type) {
-      case "all":
-        await mediaController.getAll();
-        break;
-      case "movies":
-        await mediaController.getMovies();
-        break;
-      case "tv":
-        await mediaController.getTv();
-        break;
-      default:
-        console.error(`Unknown type ${contentType}.`);
-    }
+  const handleNav = (type: MediaCategory) => {
+    mediaController.loadCategory(type);
   };
 
   return (
@@ -47,7 +32,7 @@ export const MediaView = observer(() => {
         <Button
           size="small"
           variant="text"
-          className={contentType === "all" ? "selected" : undefined}
+          className={activeCategory === "all" ? "selected" : undefined}
           onClick={() => handleNav("all")}
         >
           All
@@ -55,7 +40,7 @@ export const MediaView = observer(() => {
         <Button
           size="small"
           variant="text"
-          className={contentType === "movies" ? "selected" : undefined}
+          className={activeCategory === "movies" ? "selected" : undefined}
           onClick={() => handleNav("movies")}
         >
           Movies
@@ -63,16 +48,16 @@ export const MediaView = observer(() => {
         <Button
           size="small"
           variant="text"
-          className={contentType === "tv" ? "selected" : undefined}
+          className={activeCategory === "tv" ? "selected" : undefined}
           onClick={() => handleNav("tv")}
         >
           TV Shows
         </Button>
       </div>
       <div id="media">
-        {media.map((m: Movie, i) => (
-          <MediaComponent movie={m} key={i} />
-        ))}
+        {isLoading
+          ? Array.from(new Array(10)).map((_, index) => <CardSkeleton key={index} />)
+          : media.map((m: Movie, i) => <MediaComponent movie={m} key={i} />)}
       </div>
     </div>
   );
