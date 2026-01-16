@@ -1,5 +1,7 @@
 import { Movie } from "../../../../definitions/Movie";
+import { Link } from "react-router-dom";
 import dayjs from "dayjs";
+import { ImageWithFallback } from "../../../../components/ImageWithFallback";
 
 import "./MediaComponent.scss";
 
@@ -14,9 +16,9 @@ export const MediaComponent = (props: MovieProps) => {
   return (
     <div className="movie-container">
       <div>
-        <a href={`${movie.media_type}/${movie.id}`}>
-          <img src={image} alt="poster" />
-        </a>
+        <Link to={`/${movie.media_type}/${movie.id}`}>
+          <ImageWithFallback src={image} alt="poster" width={220} height={330} />
+        </Link>
       </div>
       <div className="title">{movie.title || movie.name}</div>
       <div className="date">{dayjs(movie.release_date || movie.first_air_date).format("MMM DD, YYYY")}</div>

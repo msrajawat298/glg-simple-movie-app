@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from "axios";
+import axiosRetry from "axios-retry";
 import { MediaType, Movie } from "../../src/definitions/Movie";
 
 const { MOVIE_DB_API_KEY, MOVIE_DB_API_BASE_URL } = process.env;
@@ -9,6 +10,15 @@ export class MovieDB {
     this.apiInstance = axios.create({
       headers: { "Content-Type": " application/json;charset=utf-8", Authorization: `Bearer ${MOVIE_DB_API_KEY}` },
       baseURL: MOVIE_DB_API_BASE_URL,
+      timeout: 10000, // 10s timeout
+    });
+
+    axiosRetry(this.apiInstance, {
+      retries: 3,
+      retryDelay: axiosRetry.exponentialDelay,
+      retryCondition: (error) => {
+        return axiosRetry.isNetworkOrIdempotentRequestError(error) || error.code === "ECONNRESET";
+      },
     });
   }
 

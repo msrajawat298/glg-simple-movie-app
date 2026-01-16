@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   frontend:
     image: glg-local-dev-support-candidate-app
